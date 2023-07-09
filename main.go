@@ -15,6 +15,7 @@ func main() {
 	// route properly to respective handlers
 	router.Handle("/documents", handlers.GetDocumentsHandler()).Methods("GET")
 	router.Handle("/documents", handlers.CreateDocumentHandler()).Methods("POST")
+	router.Handle("/documents/{id}", handlers.DeleteDocumentHandler()).Methods("DELETE")
 
 	// Create new server and assign the router
 	server := http.Server{

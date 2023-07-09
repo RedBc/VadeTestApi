@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 )
@@ -49,4 +50,47 @@ func AddDocument(document Document) error {
 	}
 
 	return nil
+}
+
+// ErrNoDocument is used if no document found
+var ErrNoDocument = errors.New("no document found")
+
+// removeElement is used to remove element from document array at given index
+func removeElement(arr []Document, index int) []Document {
+	ret := make([]Document, 0)
+	ret = append(ret, arr[:index]...)
+	return append(ret, arr[index+1:]...)
+}
+
+// Deletedocument takes id as input and deletes the corresponding document, else it returns ErrNoDocument error.
+func DeleteDocument(id string) error {
+	// Read JSON file
+	data, err := ioutil.ReadFile("./data/data.json")
+	if err != nil {
+		return err
+	}
+	// read documents
+	var documents []Document
+	err = json.Unmarshal(data, &documents)
+	if err != nil {
+		return err
+	}
+	// iterate through document array
+	for i := 0; i < len(documents); i++ {
+		// if we find one document with the given ID
+		if documents[i].ID == id {
+			documents = removeElement(documents, i)
+			// Write Updated JSON file
+			updatedData, err := json.Marshal(documents)
+			if err != nil {
+				return err
+			}
+			err = ioutil.WriteFile("./data/data.json", updatedData, os.ModePerm)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	return ErrNoDocument
 }

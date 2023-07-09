@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"vade.com/vade/goDocumentAPI/entity"
 )
 
@@ -47,5 +49,26 @@ func CreateDocumentHandler() http.HandlerFunc {
 		// return after writing Body
 		rw.WriteHeader(http.StatusCreated)
 		rw.Write([]byte("Added New document"))
+	}
+}
+
+// DeleteDocumentHandler deletes the document with given ID.
+func DeleteDocumentHandler() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		// Read document ID
+		documentID := mux.Vars(r)["id"]
+		err := entity.DeleteDocument(documentID)
+		if err != nil {
+			// Check if it is No document error or any other error
+			if errors.Is(err, entity.ErrNoDocument) {
+				// Write Header if no related document found.
+				rw.WriteHeader(http.StatusNoContent)
+			} else {
+				rw.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+		// Write Header with Accepted Status (done operation)
+		rw.WriteHeader(http.StatusAccepted)
 	}
 }
